@@ -1,0 +1,20 @@
+{
+  "name": "lights",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "sudo node ./bin/www"
+  },
+  "bin": "./bin/www",
+  "dependencies": {
+    "body-parser": "~1.15.1",
+    "cookie-parser": "~1.4.3",
+    "debug": "~2.2.0",
+    "express": "~4.13.4",
+    "fs": "0.0.1-security",
+    "jade": "~1.11.0",
+    "morgan": "~1.7.0",
+    "serialport": "^4.0.3",
+    "serve-favicon": "~2.3.0"
+  }
+}

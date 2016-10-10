@@ -140,7 +140,10 @@ ZHAHost.prototype.onCommand = function(command, param) {
         if(commandFound)
             break;
     }
+
+    console.log("categoryKey: " + categoryKey)
     var message = new Message(command.layer, command.id);
+    // The following statement is useless since none of them defines it
     if(command.buildMessage) {
         if(!command.buildMessage(this, message, param)) {
             console.log("build message failed, may be something wrong with param: ");
@@ -170,11 +173,22 @@ ZHAHost.prototype.onUserCommand = function(commandPath, paramStr) {
     if(parts.length == 2) {
         var categoryKey = parts[0];
         var commandKey = parts[1];
+
+        // console.log("part[0] " + parts[0])
+        // console.log("part[1] " + parts[1])
+
         var category = commands[categoryKey];
+        console.log("category: " + typeof (category))
+        // dataUtils.dumpProperties(category)
+
         if(category) {
             var command = category[commandKey];
+            console.log("command　"　+ command)
+            // dataUtils.dumpProperties(command)
+
             if(command) {
                 if(paramStr) {
+                    console.log("paramStr: " + paramStr)
                     var param;
                     try{
                         param = JSON.parse(paramStr);
@@ -378,6 +392,9 @@ ZHAHost.prototype.onInit = function() {
         operation: 'read',
         configuration: 'epid'
     });
+
+    // We need to get the light id information
+    this.comm
 };
 
 ZHAHost.prototype.loadDevices = function(devices) {

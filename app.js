@@ -30,9 +30,9 @@ SerialPort.list(function (err, ports) {
             return;
         }
     });
-    if(portCount == 0) {
+    if( portCount == 0 ) {
         console.log('serial port not found');
-        process.exit(1);
+        // process.exit(1);
     }
 });
 
@@ -45,12 +45,13 @@ function onPortFound(port) {
 function onPortOpen(error) {
     if( error != null ) {
         console.log('open serial port failed: ' + error);
-        process.exit(1);
+        // process.exit(1);
         return;
+    } else {
+        console.log('serial port opened!');
+        hostPort.on('data', onPortReceive);
+        initHost();
     }
-    console.log('serial port opened!');
-    hostPort.on('data', onPortReceive);
-    initHost();
 }
 
 function onPortReceive(data) {
@@ -61,17 +62,20 @@ function onPortReceive(data) {
 
 //host application
 
-var dataPath = process.env.SNAP_DATA;
+var dataPath = process.env.SNAP;
 if(dataPath == null) {
     dataPath = "data/"
 }
 else if(dataPath.slice(-1) != "/")
     dataPath += "/"
 
+console.log("dataPath: " + dataPath)
+
 var epid = "";
 
 function initHost() {
     host = new Host(hostPort);
+
     // if(initCommandPath)
     // 	host.onUserCommand(initCommandPath, initCommandParam);
     // else {
@@ -88,6 +92,8 @@ function initHost() {
                 "id": light.id,
                 "power": light.power
             }));
+        // We need to publish the data so all of the terminals can update the status
+        client.publish('lightdata', JSON.stringify(light))
     });
     host.on("foundNewLight", function(light) {
         console.log("found new light: " + JSON.stringify({
@@ -142,6 +148,19 @@ function saveDevices() {
     })
 }
 
+var DEFAULT_HOST = 'localhost'
+var DEFAULT_PORT = 1883
+var mqtt = require('mqtt')
+var client = mqtt.connect({ port: DEFAULT_PORT, host: DEFAULT_HOST, keepalive: 10000});
+
+// client.end()
+
+setInterval(function(){
+    // client.publish('lightdata', 'nice')
+    // Trying to get the light status
+    host.onUserCommand("light.getPower",  '{"id":"Light1"}')
+}, 5 * 1000);
+
 var routes = require('./routes/index');
 var users = require('./routes/users');
 
@@ -168,6 +187,15 @@ router.use(function(req, res, next) {
   next(); // make sure we go to the next routes and don't stop here
 });
 
+String.prototype.format = function() {
+    var formatted = this;
+    for (var i = 0; i < arguments.length; i++) {
+        var regexp = new RegExp('\\{'+i+'\\}', 'gi');
+        formatted = formatted.replace(regexp, arguments[i]);
+    }
+    return formatted;
+};
+
 // Get all of the status of the lights
 router.route('/lights')
     .get(function(req, res) {
@@ -180,6 +208,7 @@ router.route('/lights')
             var device = new Object();
             device.id = light.id;
             device.uid = light.uid;
+            device.power = light.power
             devices.push(device);
         }
         res.status(200).json(devices);
@@ -188,21 +217,28 @@ router.route('/lights')
 // Get the status for each light
 router.route('/lights/:light_id')
     .get(function(req, res) {
-      console.log("going to get the status for a specific light status")
-      console.log("light_id: " + req.params.light_id)
-      res.status(200).json({message: "got the status"})
+        console.log("going to get the status for a specific light status")
+        console.log("light_id: " + req.params.light_id)
+        // We send a command to get the light status
+        host.onUserCommand("light.getPower",  '{"id":"Light1"}')
+        res.status(200).json({message: "got the status"})
     })
     .put(function(req, res) {
-      console.log("it comes to put")
-      console.log("uid: " + req.body.uid)
-      console.log("light_id: " + req.params.light_id)
-      res.status(200).json({message: "put the status"})
+        console.log("it comes to put")
+        console.log("uid: " + req.body.uid)
+        console.log("light_id: " + req.params.light_id)
+        res.status(200).json({message: "put the status"})
     });
 
 router.route('/light/:light_id/:status')
-    .post(function(req, res) {
+    .get(function(req, res) {
+        var light_id = req.params.light_id
+        var status = (req.params.status == 1 ? "on" : "off")
         console.log("light_id: " + req.params.light_id)
         console.log("status: " + req.params.status)
+        var data = '{"id":"{0}","operation":"{1}"}'.format(light_id, status)
+        console.log("data: "　+ data);
+        host.onUserCommand("light.power", data)
         res.status(200).json( { message: "setting the lights on/off"})
      });
 
@@ -222,6 +258,7 @@ router.route('/colors')
     })
     .post(function(req, res) {
         console.log("it comes to the post")
+        // dataUtils.dumpProperties(req.body)
         console.log("hue: " + req.body.hue)
         console.log("saturation： " + req.body.saturation)
         console.log("brightness: " + req.body.brightness)

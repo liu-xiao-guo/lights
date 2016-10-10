@@ -11,8 +11,26 @@ apps:
     command: lights
     # daemon: simple
     plugs: [network-bind]
+  mqtt:
+    command: bin/server
+    daemon: simple
+    plugs: [network-bind]
+  subscribe:
+    command: bin/subscribe
+    plugs: [network, network-bind]
+  publish:
+    command: bin/publish
+    plugs: [network, network-bind]
 
 parts:
   node:
     plugin: nodejs
     source: . 
+
+  lightsetting:
+    plugin: dump
+    source: ./data
+    organize:
+      ./data/devices.json: devices.json
+        
+    

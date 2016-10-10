@@ -5,7 +5,12 @@
   "scripts": {
     "start": "sudo node ./bin/www"
   },
-  "bin": "./bin/www",
+  "bin": {
+    "lights": "./bin/www",
+    "server": "./bin/server.js",
+    "publish": "./bin/publish.js",
+    "subscribe": "./bin/subscribe.js"
+  },
   "dependencies": {
     "body-parser": "~1.15.1",
     "cookie-parser": "~1.4.3",
@@ -14,6 +19,8 @@
     "fs": "0.0.1-security",
     "jade": "~1.11.0",
     "morgan": "~1.7.0",
+    "mosca": "^2.2.0",
+    "mqtt": "^2.0.1",
     "serialport": "^4.0.3",
     "serve-favicon": "~2.3.0"
   }

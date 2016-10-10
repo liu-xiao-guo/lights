@@ -51,6 +51,12 @@ function onPortOpen(error) {
         console.log('serial port opened!');
         hostPort.on('data', onPortReceive);
         initHost();
+
+        setInterval(function(){
+            // client.publish('lightdata', 'nice')
+            // Trying to get the light status
+            host.onUserCommand("light.getPower",  '{"id":"Light1"}')
+        }, 5 * 1000);
     }
 }
 
@@ -154,12 +160,6 @@ var mqtt = require('mqtt')
 var client = mqtt.connect({ port: DEFAULT_PORT, host: DEFAULT_HOST, keepalive: 10000});
 
 // client.end()
-
-setInterval(function(){
-    // client.publish('lightdata', 'nice')
-    // Trying to get the light status
-    host.onUserCommand("light.getPower",  '{"id":"Light1"}')
-}, 5 * 1000);
 
 var routes = require('./routes/index');
 var users = require('./routes/users');

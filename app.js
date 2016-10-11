@@ -247,7 +247,7 @@ router.route('/epid')
         res.status(200).json({epid: epid})
     });
 
-router.route('/colors')
+router.route('/colors/:light_id')
     .get(function(req, res) {
         console.log("it comes get here");
         // console.log("hue: " + req.param('hue'))
@@ -259,9 +259,27 @@ router.route('/colors')
     .post(function(req, res) {
         console.log("it comes to the post")
         // dataUtils.dumpProperties(req.body)
+        var light_id = req.params.light_id
+        console.log("light_id: " + light_id )
         console.log("hue: " + req.body.hue)
         console.log("saturation： " + req.body.saturation)
         console.log("brightness: " + req.body.brightness)
+
+        var brightness = req.body.brightness
+        var hue = req.body.hue
+        var saturation = req.body.saturation
+
+        // Let's adjust the lum first
+        var data = '{"id":"{0}","lum":{1},"duration":{2}}'.format(light_id, brightness, 2)
+        console.log("lum data: " + data);
+        host.onUserCommand("light.lum", data)
+
+        data = '{"id":"{0}","hue":{1},"saturation":{2},"duration":{3}}'.format(light_id, hue, saturation, 2)
+        console.log("hue and saturation: " + data)
+        host.onUserCommand("light.hueSaturation", data)
+
+        // light.hueSaturation {"id":"Light1","hue":0,"saturation":254,"duration":2}
+
         res.status(200).json( { message: "OK"})
     });
 

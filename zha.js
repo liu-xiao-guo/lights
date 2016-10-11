@@ -196,6 +196,7 @@ ZHAHost.prototype.onUserCommand = function(commandPath, paramStr) {
                     catch(err) {
                         console.log("parse param to JSON failed: " + err);
                     }
+
                     if(param)
                         this.onCommand(command, param);
                     else
